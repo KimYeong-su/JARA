@@ -535,3 +535,11 @@ scp -i Desktop/amazon/juhyung.pem -r Desktop/example ubuntu@~~~~:~/
 ```
 sudo mv ~/dist /var/www/html/dist
 ```
+
+---------------------------------------
+
+시연 동영상 보러가기 - https://youtu.be/YBMnp_IKxGc
+
+JARA 소개 동영상 보러가기 - https://youtu.be/WcRI5ygVCTk
+
+JARA PPT 보러가기 - https://drive.google.com/drive/folders/1mWrnvZ8Jy4_Fi-C8EchI3rdAm4fGiKFO?usp=sharing
