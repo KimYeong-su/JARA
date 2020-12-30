@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ssafy.jara.dao.TipDao">
+	
+	<!-- 팁 등록 -->
+	<insert id="insertTip" useGeneratedKeys="true" keyProperty="id">
+		INSERT INTO tip (writer, title, contents, tag_id, img_src)
+		VALUES (#{writer}, #{title}, #{contents}, #{tag_id}, #{img_src})
+	</insert>
+	
+	<!-- 전체 팁 조회 -->
+	<select id="selectListTip" resultType="com.ssafy.jara.dto.Tip">
+		SELECT *, (SELECT count(*) 
+				   FROM tip_like 
+				   WHERE tip_id=tip.id) AS likes
+		FROM tip
+	</select>
+	
+	<!-- 팁 조회 -->
+	<select id="selectTip" resultType="com.ssafy.jara.dto.Tip">
+		SELECT *, (SELECT count(*) 
+				   FROM tip_like 
+				   WHERE tip_id=tip.id) AS likes
+		FROM tip
+		WHERE id=#{id}
+	</select>
+	
+	<!-- 팁 수정 -->
+	<update id="updateTip">
+		UPDATE tip
+		SET title=#{title}, contents=#{contents}
+		WHERE id=#{id}
+	</update>
+	
+	<!-- 팁 삭제 -->
+	<delete id="deleteTip">
+		DELETE 
+		FROM tip 
+		WHERE id=#{id}
+	</delete>
+	
+	<!-- 팁 좋아요 등록 -->
+	<insert id="insertTipLike" parameterType="java.util.HashMap">
+		INSERT INTO tip_like
+		VALUES (#{tip_id}, #{user_id})
+	</insert>
+	
+	<!-- 팁 좋아요 하는 사용자 전체 조회 -->
+	<select id="selectTipLikeAccounts" resultType="java.lang.Integer">
+		SELECT user_id
+		FROM tip_like
+		WHERE tip_id=#{tip_id}
+	</select>
+	
+	<!-- 사용자의 해당 팁 좋아요 여부 확인 -->
+	<select id="selectTipLike" parameterType="java.util.HashMap" resultType="java.lang.Integer">
+		SELECT count(*)
+		FROM tip_like
+		WHERE tip_id=#{tip_id} AND user_id=#{user_id}
+	</select>
+	
+	<!-- 팁 좋아요 삭제 -->
+	<delete id="deleteTipLike" parameterType="java.util.HashMap">
+		DELETE 
+		FROM tip_like
+		WHERE tip_id=#{tip_id} AND user_id=#{user_id}
+	</delete>
+	
+	<!-- 팁 스크랩 등록 -->
+	<insert id="insertTipScrap">
+		INSERT INTO scrap
+		VALUES (#{tip_id}, #{user_id})
+	</insert>
+	
+	<!-- 사용자가 스크랩한 전체 팁 조회 -->
+	<select id="selectListTipUserScrap" resultType="com.ssafy.jara.dto.Tip">
+		SELECT *
+		FROM tip
+		WHERE id in (SELECT tip_id
+					 FROM scrap
+					 WHERE user_id=#{user_id})
+	</select>
+	
+	<!-- (좋아요수+스크랩수) 순 > 좋아요순 > 최신순 정렬 상위 5개 조회-->
+	<select id="selectListTipTop5" resultType="com.ssafy.jara.dto.Tip">
+		SELECT *, (SELECT COUNT(*)
+				   FROM tip_like
+				   WHERE tip_id=id) AS likes,
+				  (SELECT COUNT(*) 
+				   FROM scrap 
+				   WHERE tip_id=tip.id) AS scraps, 
+				  (SELECT COUNT(*) 
+				   FROM tip_comment 
+				   WHERE tip_id=tip.id) AS commentCount
+	    FROM tip
+	    ORDER BY (likes + scraps) DESC, likes DESC, created_at DESC
+	    LIMIT 5 
+	</select>
+	
+	<!-- 팁 이미지 경로(firebase) 저장 -->
+	<update id="updateTipImg">
+		UPDATE tip
+		SET img_src=#{img_src}
+		WHERE id=#{id}
+	</update>
+	
+	<!-- 팁 스크랩 사용자 전체 조회 -->
+	<select id="selectListTipScrap" resultType="java.lang.Integer">
+		SELECT user_id
+		FROM scrap
+		WHERE tip_id=#{tip_id}
+	</select>
+	
+</mapper>

@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ssafy.jara.dao.AccountDao">
+	
+
+	<!-- 회원가입 -->
+	<insert id="insertAccount" useGeneratedKeys="true" keyProperty="id">
+		INSERT INTO user (nickname, email, password, sex,birthday, location, status, code)
+		VALUES(#{nickname}, #{email}, #{password} ,#{sex}, #{birthday}, #{location} ,0, LEFT(MD5(RAND()), 10))
+	</insert>
+	
+	<!-- 회원가입 가능 상태로 만들기 -->
+	<update id="changeStatus">
+		UPDATE user
+		SET status=1
+		WHERE code=#{code}
+	</update>
+	
+	<!-- 로그인 -->
+	<select id="selectAccount" resultType="com.ssafy.jara.dto.Account">
+		SELECT *
+		FROM user
+		WHERE email=#{email} and password=#{password} and status = 1;
+	</select>
+	
+	<!-- 이메일로 비밀번호 찾기(로그인 시) 비밀번호 암호화에 필요 -->
+<!-- 	<select id="findPassword" resultType="java.lang.String">
+		SELECT password
+		FROM user
+		WHERE email=#{email}
+	</select> -->
+	
+	<!-- 닉네임(uid) / 이메일(email) 중복 체크 -->
+	<select id="duplicateCheck" resultType="java.lang.Integer">
+		SELECT count(*)
+		FROM user
+		WHERE nickname=#{nickname} or email=#{email}
+	</select>
+	
+	<!-- 인증 코드 변경하기 -->
+	<update id="changeCode">
+		UPDATE user
+		SET code=LEFT(MD5(RAND()), 10)
+		WHERE email=#{email}
+	</update>
+	
+	<!-- 인증 코드 이메일로 찾기 -->
+	<select id="findCode" resultType="java.lang.String">
+		SELECT code
+		FROM user
+		WHERE email=#{email}
+	</select>
+	
+	<!-- 비밀번호 변경하기 -->
+	<update id="changePassword">
+		UPDATE user
+		SET password=#{password}
+		WHERE code=#{code}
+	</update>
+	
+	<!-- 모든 회원 정보(유저) 조회 -->
+	<select id="findAllAccount" resultType="com.ssafy.jara.dto.Account">
+		SELECT id, nickname, img_src
+		FROM user
+		ORDER BY nickname
+	</select>
+	
+	
+	<!-- 회원 정보 조회 - 민감 정보 제외 -->
+	<select id="findPartAccount" resultType="com.ssafy.jara.dto.Account">
+		SELECT id, nickname, sex, birthday, location, bio, status, img_src
+		FROM user
+		WHERE id=#{id}
+	</select>
+	
+	<!-- 회원 email 확인 -->
+	<select id="findEmail" resultType="java.lang.Integer">
+		SELECT count(*)
+		FROM user
+		WHERE email=#{email}
+	</select>
+	
+	<!-- 회원 정보 수정 -->
+	<update id="updateAccount">
+		UPDATE user SET
+		nickname=#{nickname}, password=#{password}, 
+		sex=#{sex}, birthday=#{birthday}, location=#{location}, bio=#{bio}, img_src=#{img_src}
+		WHERE id=#{id}
+	</update>
+	
+	<!-- 회원 정보 삭제 -->
+	<delete id="deleteAccount">
+		DELETE
+		FROM user
+		WHERE id=#{id}
+	</delete>
+	
+	<!-- 팔로우 추가 : 팔로우 요청 보내기 -->
+	<insert id="insertFollow">
+		INSERT INTO follow (following,follower, status)
+		VALUES(#{following}, #{follower} ,false)
+	</insert>
+	
+	<!-- 팔로우 추가 : 팔로우 요청 승인하기 -->
+	<update id="approveFollow">
+		UPDATE follow
+		SET status= true
+		WHERE follower=#{follower} AND following=#{following}
+	</update>
+	
+	<!-- 팔로우 여부 조회 -->
+	<select id="findFollow" resultType="java.lang.Integer">
+		SELECT count(*)
+		FROM follow 
+		WHERE follower=#{follower} and following=#{following} 
+	</select>
+	
+	<!-- 팔로우 취소 -->
+	<delete id="deleteFollow">
+		DELETE
+		FROM follow
+		WHERE follower=#{follower} and following=#{following} 
+	</delete>
+	
+	<!-- 팔로워 정보 조회 -->
+	<select id="findFollowing" resultType="java.lang.Integer">
+		SELECT follower
+		FROM follow
+		WHERE following=#{following} and status=1
+	</select>
+	
+	<!-- 팔로잉 정보 조회 -->
+	<select id="findFollower" resultType="java.lang.Integer">
+		SELECT following
+		FROM follow
+		WHERE follower=#{follower} and status=1
+	</select>
+	
+	<!-- 이메일로 id 조회 -->
+	<select id="findIdByEmail" resultType="java.lang.Integer">
+		SELECT id
+		FROM user
+		WHERE email=#{email}
+	</select>
+	
+	<!-- 네이버 소셜 로그인 회원가입 (password는 랜덤값 삽입) -->
+	<insert id="insertNaverAccount" useGeneratedKeys="true" keyProperty="id">
+		INSERT INTO user (nickname, password, email, sex, status, access_token, refresh_token)
+		VALUES(#{nickname}, "jara0708", #{email}, #{sex}, 1, #{access_token}, #{refresh_token})
+	</insert>
+	
+	<!-- 네이버 소셜 로그인 처음인 경우 주소 따로 받아서 수정 -->
+	<update id="updateNaverAccount">
+		UPDATE user
+		SET location=#{location}
+		WHERE id=#{id}
+	</update>
+	
+	<!-- 카카오 소셜 로그인 회원가입 (password 랜덤값) -->
+	<insert id="insertKakaoAccount" useGeneratedKeys="true" keyProperty="id">
+		INSERT INTO user (nickname, password, email, sex, status, img_src, access_token, refresh_token)
+		VALUES(#{nickname}, "jara0708", #{email}, #{sex}, 1, #{img_src}, #{access_token}, #{refresh_token})
+	</insert>
+	
+	<!-- 카카오 소셜 로그인 처음인 경우 주소 따로 받아서 수정 -->
+ 	<update id="updateKakaoAccount">
+		UPDATE user
+		SET location=#{location}
+		WHERE id=#{id}
+	</update> 
+
+</mapper>
